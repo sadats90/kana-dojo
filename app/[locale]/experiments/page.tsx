@@ -53,8 +53,8 @@ const experiments = [
     color: 'text-yellow-400'
   },
   {
-    name: 'Daily Haiku',
-    description: 'A new haiku every day',
+    name: 'Haiku Garden',
+    description: 'Classic Japanese poetry',
     href: '/experiments/haiku',
     icon: BookOpen,
     color: 'text-pink-400'

@@ -309,7 +309,7 @@ const Sidebar = () => {
         onClick={playClick}
       >
         <BookOpen className='shrink-0' />
-        <span>Daily Haiku</span>
+        <span>Haiku Garden</span>
       </Link>
       <Link
         href='/experiments/constellation'
