@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CircleCheck } from 'lucide-react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
@@ -16,7 +16,6 @@ import SSRAudioButton from '@/shared/components/audio/SSRAudioButton';
 import FuriganaText from '@/shared/components/text/FuriganaText';
 import { useCrazyModeTrigger } from '@/features/CrazyMode/hooks/useCrazyModeTrigger';
 import { getGlobalAdaptiveSelector } from '@/shared/lib/adaptiveSelection';
-import { ActionButton } from '@/shared/components/ui/ActionButton';
 import { GameBottomBar } from '@/shared/components/Game/GameBottomBar';
 
 // Get the global adaptive selector for weighted character selection
@@ -153,7 +152,7 @@ const KanjiInputGame = ({
 
   useEffect(() => {
     if (isHidden) speedStopwatch.pause();
-  }, [isHidden]);
+  }, [isHidden, speedStopwatch]);
 
   if (!selectedKanjiObjs || selectedKanjiObjs.length === 0) {
     return null;
@@ -261,7 +260,7 @@ const KanjiInputGame = ({
     setCorrectChar(newChar);
   };
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = () => {
     playClick();
     setInputValue('');
     setDisplayAnswerSummary(false);
@@ -269,7 +268,7 @@ const KanjiInputGame = ({
     setBottomBarState('check');
     speedStopwatch.reset();
     speedStopwatch.start();
-  }, [playClick]);
+  };
 
   const gameMode = isReverse ? 'reverse input' : 'input';
   const displayCharLang = isReverse ? 'en' : 'ja';
@@ -342,7 +341,7 @@ const KanjiInputGame = ({
           </div>
 
           <textarea
-            ref={inputRef as any}
+            ref={inputRef}
             value={inputValue}
             placeholder='Type your answer...'
             disabled={showContinue}
@@ -361,7 +360,7 @@ const KanjiInputGame = ({
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                handleEnter(e as any);
+                handleEnter(e);
               }
             }}
             lang={inputLang}
