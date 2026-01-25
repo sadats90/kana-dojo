@@ -198,5 +198,80 @@
     "id": 40,
     "text": "\"〜うちに\" means \"while\" or \"before\" something changes.",
     "issued": false
+  },
+  {
+    "id": 41,
+    "text": "\"〜ことができる\" expresses ability, like \"can do\".",
+    "issued": false
+  },
+  {
+    "id": 42,
+    "text": "\"〜ことがある\" means \"sometimes\" when talking about habitual actions.",
+    "issued": false
+  },
+  {
+    "id": 43,
+    "text": "\"〜にくい\" attaches to verb stems to mean \"hard to do\".",
+    "issued": false
+  },
+  {
+    "id": 44,
+    "text": "\"〜やすい\" attaches to verb stems to mean \"easy to do\".",
+    "issued": false
+  },
+  {
+    "id": 45,
+    "text": "\"〜ておく\" means \"do in advance\" or \"leave as is\".",
+    "issued": false
+  },
+  {
+    "id": 46,
+    "text": "\"〜にする\" means \"decide on\" a choice or selection.",
+    "issued": false
+  },
+  {
+    "id": 47,
+    "text": "\"〜に決まっている\" means \"must be\" or \"definitely\".",
+    "issued": false
+  },
+  {
+    "id": 48,
+    "text": "\"〜そうだ\" can indicate appearance, like \"it looks like\".",
+    "issued": false
+  },
+  {
+    "id": 49,
+    "text": "\"〜ながらも\" means \"even while\" or \"though\" (contrast).",
+    "issued": false
+  },
+  {
+    "id": 50,
+    "text": "\"〜わけではない\" means \"not necessarily\" or \"it's not that\".",
+    "issued": false
+  },
+  {
+    "id": 51,
+    "text": "\"〜というより\" means \"rather than\" or \"more like\".",
+    "issued": false
+  },
+  {
+    "id": 52,
+    "text": "\"〜おかげで\" expresses gratitude for a cause, \"thanks to\".",
+    "issued": false
+  },
+  {
+    "id": 53,
+    "text": "\"〜せいで\" indicates a negative cause, \"because of\".",
+    "issued": false
+  },
+  {
+    "id": 54,
+    "text": "\"〜ほど\" can express degree, like \"so... that\".",
+    "issued": false
+  },
+  {
+    "id": 55,
+    "text": "\"〜ば〜ほど\" means \"the more... the more...\".",
+    "issued": false
   }
 ]

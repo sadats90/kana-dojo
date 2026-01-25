@@ -42,6 +42,7 @@ jobs:
             const proverbsBacklogPath = 'data/community/proverbs-backlog.json';
             const triviaBacklogPath = 'data/community/trivia-backlog.json';
             const grammarBacklogPath = 'data/community/grammar-backlog.json';
+            const animeQuotesBacklogPath = 'data/community/anime-quotes-backlog.json';
 
             const prTitle = context.payload.pull_request.title;
             const prTitleLower = prTitle.toLowerCase();
@@ -54,8 +55,9 @@ jobs:
             const isProverbContribution = prTitleLower.includes('proverb');
             const isTriviaContribution = prTitleLower.includes('trivia');
             const isGrammarContribution = prTitleLower.includes('grammar');
+            const isAnimeQuoteContribution = prTitleLower.includes('anime quote') || prTitleLower.includes('anime-quote') || prTitleLower.includes('animequote');
 
-            if (!isThemeContribution && !isFactContribution && !isProverbContribution && !isTriviaContribution && !isGrammarContribution) {
+            if (!isThemeContribution && !isFactContribution && !isProverbContribution && !isTriviaContribution && !isGrammarContribution && !isAnimeQuoteContribution) {
               console.log('Not a community contribution PR, skipping');
               core.setOutput('should_commit', 'false');
               return;
@@ -147,6 +149,17 @@ jobs:
                   if (matches.length > 0) {
                     targetIssue = matches[0].number;
                     console.log(`Found matching grammar issue: #${targetIssue}`);
+                  }
+                }
+              } else if (isAnimeQuoteContribution) {
+                const quoteIdMatch = prTitle.match(/#(\d+)/);
+                const quoteId = quoteIdMatch ? quoteIdMatch[1] : null;
+                if (quoteId) {
+                  console.log(`Looking for anime quote issue: #${quoteId}`);
+                  const matches = await searchOpenCommunityIssues(`"Add Famous Anime Quote #${quoteId}"`);
+                  if (matches.length > 0) {
+                    targetIssue = matches[0].number;
+                    console.log(`Found matching anime quote issue: #${targetIssue}`);
                   }
                 }
               }
@@ -285,6 +298,23 @@ jobs:
                       fs.writeFileSync(grammarBacklogPath, JSON.stringify(grammar, null, 2));
                       needsCommit = true;
                       console.log(`Marked grammar #${grammarId} as completed`);
+                    }
+                  }
+                } else if (isAnimeQuoteContribution) {
+                  const animeQuotes = JSON.parse(fs.readFileSync(animeQuotesBacklogPath, 'utf8'));
+                  const issueQuoteMatch = issueTitle.match(/Add Famous Anime Quote\s*#(\d+)/i);
+                  const prQuoteMatch = prTitle.match(/#(\d+)/);
+                  const quoteId = issueQuoteMatch ? parseInt(issueQuoteMatch[1]) : (prQuoteMatch ? parseInt(prQuoteMatch[1]) : null);
+
+                  if (quoteId !== null) {
+                    const quoteIndex = animeQuotes.findIndex(function(q) { return q.id === quoteId; });
+                    if (quoteIndex !== -1) {
+                      animeQuotes[quoteIndex].completed = true;
+                      animeQuotes[quoteIndex].completedBy = prAuthor;
+                      animeQuotes[quoteIndex].completedPR = prNumber;
+                      fs.writeFileSync(animeQuotesBacklogPath, JSON.stringify(animeQuotes, null, 2));
+                      needsCommit = true;
+                      console.log(`Marked anime quote #${quoteId} as completed`);
                     }
                   }
                 }

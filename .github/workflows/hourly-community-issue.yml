@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       force_type:
-        description: 'Force issue type: theme | fact | proverb | trivia | grammar'
+        description: 'Force issue type: theme | fact | proverb | trivia | grammar | animeQuote'
         required: false
         type: string
       dry_run:
@@ -73,6 +73,7 @@ jobs:
             const proverbsBacklogPath = 'data/community/proverbs-backlog.json';
             const triviaBacklogPath = 'data/community/trivia-backlog.json';
             const grammarBacklogPath = 'data/community/grammar-backlog.json';
+            const animeQuotesBacklogPath = 'data/community/anime-quotes-backlog.json';
 
             const themesSourcePath = 'features/Preferences/data/themes.ts';
             const factsSourcePath = 'public/japan-facts.json';
@@ -84,6 +85,7 @@ jobs:
             };
             const triviaLegacyPath = 'public/japan-trivia.json';
             const grammarSourcePath = 'public/japanese-grammar.json';
+            const animeQuotesSourcePath = 'public/anime-quotes.json';
 
             let state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
             const themes = JSON.parse(fs.readFileSync(themeBacklogPath, 'utf8'));
@@ -91,6 +93,7 @@ jobs:
             const proverbs = JSON.parse(fs.readFileSync(proverbsBacklogPath, 'utf8'));
             const trivia = JSON.parse(fs.readFileSync(triviaBacklogPath, 'utf8'));
             const grammar = JSON.parse(fs.readFileSync(grammarBacklogPath, 'utf8'));
+            const animeQuotes = JSON.parse(fs.readFileSync(animeQuotesBacklogPath, 'utf8'));
 
             if (typeof state.consecutiveNoIssueRuns !== 'number') {
               state.consecutiveNoIssueRuns = 0;
@@ -143,6 +146,15 @@ jobs:
               }
             }
 
+            let existingAnimeQuotes = [];
+            if (fs.existsSync(animeQuotesSourcePath)) {
+              try {
+                existingAnimeQuotes = JSON.parse(fs.readFileSync(animeQuotesSourcePath, 'utf8'));
+              } catch (e) {
+                console.log(`Could not parse ${animeQuotesSourcePath}: ${e.message}`);
+              }
+            }
+
             let themesSourceContent = '';
             if (fs.existsSync(themesSourcePath)) {
               try {
@@ -166,7 +178,7 @@ jobs:
               }
             }
 
-            const defaultOrder = ['theme', 'fact', 'proverb', 'trivia', 'grammar'];
+            const defaultOrder = ['theme', 'fact', 'proverb', 'trivia', 'grammar', 'animeQuote'];
             const typeOrder = forceType && defaultOrder.includes(forceType)
               ? [forceType]
               : defaultOrder;
@@ -421,7 +433,7 @@ jobs:
               trivia[triviaIndex].issued = true;
               fs.writeFileSync(triviaBacklogPath, JSON.stringify(trivia, null, 2));
               backlogChanged = true;
-              } else {
+              } else if (nextType === 'grammar') {
               // Grammar
               item = grammar.find(function(g) {
                 if (g.issued || g.completed) {
@@ -473,6 +485,72 @@ jobs:
               const grammarIndex = grammar.findIndex(function(g) { return g.id === item.id; });
               grammar[grammarIndex].issued = true;
               fs.writeFileSync(grammarBacklogPath, JSON.stringify(grammar, null, 2));
+              backlogChanged = true;
+              } else {
+              // Anime Quote
+              item = animeQuotes.find(function(q) {
+                if (q.issued || q.completed) {
+                  return false;
+                }
+                if (Array.isArray(existingAnimeQuotes)) {
+                  const exists = existingAnimeQuotes.some(function(eq) {
+                    if (!eq || typeof eq !== 'object') {
+                      return false;
+                    }
+                    return eq.japanese === q.japanese
+                      && eq.romaji === q.romaji
+                      && eq.english === q.english
+                      && eq.anime === q.anime
+                      && eq.character === q.character;
+                  });
+                  if (exists) {
+                    const quoteIdx = animeQuotes.findIndex(function(qi) { return qi.id === q.id; });
+                    animeQuotes[quoteIdx].completed = true;
+                    backlogChanged = true;
+                    return false;
+                  }
+                }
+                return true;
+              });
+
+              if (!item) {
+                console.log('No more anime quotes available in backlog.');
+                if (backlogChanged) {
+                  fs.writeFileSync(themeBacklogPath, JSON.stringify(themes, null, 2));
+                  fs.writeFileSync(factsBacklogPath, JSON.stringify(facts, null, 2));
+                  fs.writeFileSync(proverbsBacklogPath, JSON.stringify(proverbs, null, 2));
+                  fs.writeFileSync(triviaBacklogPath, JSON.stringify(trivia, null, 2));
+                  fs.writeFileSync(grammarBacklogPath, JSON.stringify(grammar, null, 2));
+                  fs.writeFileSync(animeQuotesBacklogPath, JSON.stringify(animeQuotes, null, 2));
+                }
+                continue;
+              }
+
+              const duplicateQuote = await hasOpenIssueForQuery(`"Add Famous Anime Quote #${item.id}"`);
+
+              if (duplicateQuote) {
+                console.log(`Issue already exists for anime quote #${item.id}: Marking as issued and skipping.`);
+                const quoteIdx = animeQuotes.findIndex(function(q) { return q.id === item.id; });
+                animeQuotes[quoteIdx].issued = true;
+                fs.writeFileSync(animeQuotesBacklogPath, JSON.stringify(animeQuotes, null, 2));
+                backlogChanged = true;
+                continue;
+              }
+
+              const tmpl = t.animeQuote;
+              const common = t.common;
+              issueTitle = tmpl.title
+                .replace('{emoji}', pickEmoji())
+                .replace('{id}', item.id);
+
+              const instructions = t.buildInstructions(tmpl.file, tmpl.itemType, tmpl.prTitle).map((instr, i) => `${i + 1}. ${instr.replace(/{id}/g, item.id)}`);
+              const codeBlock = `\`\`\`json\n{\n  \"japanese\": \"${item.japanese}\",\n  \"romaji\": \"${item.romaji}\",\n  \"english\": \"${item.english}\",\n  \"anime\": \"${item.anime}\",\n  \"character\": \"${item.character}\"\n}\n\`\`\``;
+
+              issueBody = `${tmpl.header}\n\n**Category:** ${tmpl.category}  \n**Difficulty:** ${common.difficulty}  \n**Estimated Time:** ${tmpl.estimatedTime}\n\n---\n\n### 🎯 Your Task\n\n${tmpl.taskDescription}\n\n${tmpl.quoteHeader}\n\n| Japanese | Romaji | English |\n|----------|--------|---------|\n| **${item.japanese}** | ${item.romaji} | ${item.english} |\n\n**Anime:** ${item.anime}  \n**Character:** ${item.character}\n\n${common.instructionsHeader}\n\n${instructions[0]}\n${instructions[1]}\n${instructions[2]}\n\n${codeBlock}\n\n${instructions[3]}\n${instructions[4]}\n${instructions[5]}\n\n---\n\n${common.footer}`;
+
+              const quoteIndex = animeQuotes.findIndex(function(q) { return q.id === item.id; });
+              animeQuotes[quoteIndex].issued = true;
+              fs.writeFileSync(animeQuotesBacklogPath, JSON.stringify(animeQuotes, null, 2));
               backlogChanged = true;
             }
 

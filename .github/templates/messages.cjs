@@ -311,5 +311,18 @@ module.exports = {
       itemType: 'grammar string',
       prTitle: 'content: add new grammar point',
     },
+    animeQuote: {
+      title:
+        '[Good First Issue] {emoji} Add Famous Anime Quote #{id} (good first issue)',
+      header: '## 🎬 Add Famous Anime Quote',
+      category: 'Community Contribution - Anime Quote',
+      estimatedTime: '2 minutes (good-first-issue!)',
+      taskDescription:
+        'Add this iconic anime quote so learners can enjoy Japanese pop culture!',
+      quoteHeader: '### The Quote',
+      file: 'public/anime-quotes.json',
+      itemType: 'anime quote object',
+      prTitle: 'content: add anime quote',
+    },
   },
 };

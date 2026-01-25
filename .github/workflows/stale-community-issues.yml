@@ -43,6 +43,7 @@ jobs:
             const proverbsBacklogPath = 'data/community/proverbs-backlog.json';
             const triviaBacklogPath = 'data/community/trivia-backlog.json';
             const grammarBacklogPath = 'data/community/grammar-backlog.json';
+            const animeQuotesBacklogPath = 'data/community/anime-quotes-backlog.json';
 
             let issues = [];
             let page = 1;
@@ -72,6 +73,7 @@ jobs:
             let proverbs = JSON.parse(fs.readFileSync(proverbsBacklogPath, 'utf8'));
             let trivia = JSON.parse(fs.readFileSync(triviaBacklogPath, 'utf8'));
             let grammar = JSON.parse(fs.readFileSync(grammarBacklogPath, 'utf8'));
+            let animeQuotes = JSON.parse(fs.readFileSync(animeQuotesBacklogPath, 'utf8'));
 
             let skippedUnassigned = 0;
             let warnedAssigned = 0;
@@ -145,6 +147,19 @@ jobs:
                     console.log(`Re-enabled grammar #${grammarId}${sourceTag}`);
                   } else if (grammarIndex !== -1 && grammar[grammarIndex].completed) {
                     console.log(`Grammar #${grammarId} is already completed, not re-enabling`);
+                  }
+                }
+              } else if (title.includes('Add Famous Anime Quote #')) {
+                const quoteIdMatch = title.match(/#(\d+)/);
+                if (quoteIdMatch) {
+                  const quoteId = parseInt(quoteIdMatch[1]);
+                  const quoteIndex = animeQuotes.findIndex(function(q) { return q.id === quoteId; });
+                  if (quoteIndex !== -1 && !animeQuotes[quoteIndex].completed) {
+                    animeQuotes[quoteIndex].issued = false;
+                    needsCommit = true;
+                    console.log(`Re-enabled anime quote #${quoteId}${sourceTag}`);
+                  } else if (quoteIndex !== -1 && animeQuotes[quoteIndex].completed) {
+                    console.log(`Anime quote #${quoteId} is already completed, not re-enabling`);
                   }
                 }
               }
@@ -246,6 +261,7 @@ jobs:
               fs.writeFileSync(proverbsBacklogPath, JSON.stringify(proverbs, null, 2));
               fs.writeFileSync(triviaBacklogPath, JSON.stringify(trivia, null, 2));
               fs.writeFileSync(grammarBacklogPath, JSON.stringify(grammar, null, 2));
+              fs.writeFileSync(animeQuotesBacklogPath, JSON.stringify(animeQuotes, null, 2));
               core.setOutput('needs_commit', 'true');
             } else {
               core.setOutput('needs_commit', 'false');

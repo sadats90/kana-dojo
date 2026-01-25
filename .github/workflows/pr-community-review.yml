@@ -18,7 +18,7 @@ jobs:
   validate-and-merge:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: contains(github.event.pull_request.title, 'theme') || contains(github.event.pull_request.title, 'fact') || contains(github.event.pull_request.title, 'Theme') || contains(github.event.pull_request.title, 'Fact') || contains(github.event.pull_request.title, 'proverb') || contains(github.event.pull_request.title, 'Proverb') || contains(github.event.pull_request.title, 'trivia') || contains(github.event.pull_request.title, 'Trivia') || contains(github.event.pull_request.title, 'grammar') || contains(github.event.pull_request.title, 'Grammar')
+    if: contains(github.event.pull_request.title, 'theme') || contains(github.event.pull_request.title, 'fact') || contains(github.event.pull_request.title, 'Theme') || contains(github.event.pull_request.title, 'Fact') || contains(github.event.pull_request.title, 'proverb') || contains(github.event.pull_request.title, 'Proverb') || contains(github.event.pull_request.title, 'trivia') || contains(github.event.pull_request.title, 'Trivia') || contains(github.event.pull_request.title, 'grammar') || contains(github.event.pull_request.title, 'Grammar') || contains(github.event.pull_request.title, 'anime quote') || contains(github.event.pull_request.title, 'Anime Quote') || contains(github.event.pull_request.title, 'anime-quote') || contains(github.event.pull_request.title, 'Anime-Quote')
 
     steps:
       - name: Checkout base branch
@@ -99,8 +99,9 @@ jobs:
             const isProverbContribution = prTitleLower.includes('proverb');
             const isTriviaContribution = prTitleLower.includes('trivia');
             const isGrammarContribution = prTitleLower.includes('grammar');
+            const isAnimeQuoteContribution = prTitleLower.includes('anime quote') || prTitleLower.includes('anime-quote') || prTitleLower.includes('animequote');
 
-            if (!isThemeContribution && !isFactContribution && !isProverbContribution && !isTriviaContribution && !isGrammarContribution) {
+            if (!isThemeContribution && !isFactContribution && !isProverbContribution && !isTriviaContribution && !isGrammarContribution && !isAnimeQuoteContribution) {
               console.log('Not a community contribution PR');
               return;
             }
@@ -189,6 +190,17 @@ jobs:
                   if (matches.length > 0) {
                     foundIssue = matches[0].number;
                     console.log(`Found matching grammar issue: #${foundIssue}`);
+                  }
+                }
+              } else if (isAnimeQuoteContribution) {
+                const quoteIdMatch = prTitle.match(/#(\d+)/);
+                if (quoteIdMatch) {
+                  const quoteId = quoteIdMatch[1];
+                  console.log(`Looking for anime quote issue: #${quoteId}`);
+                  const matches = await searchOpenCommunityIssues(`"Add Famous Anime Quote #${quoteId}"`);
+                  if (matches.length > 0) {
+                    foundIssue = matches[0].number;
+                    console.log(`Found matching anime quote issue: #${foundIssue}`);
                   }
                 }
               }
@@ -401,6 +413,48 @@ jobs:
                 }
               } catch (e) {
                 errors.push(`Error reading grammar file: ${e.message}`);
+              }
+            } else if (isAnimeQuoteContribution) {
+              validationType = 'anime quote';
+              console.log('Validating anime quote contribution');
+
+              const allowed = ['public/anime-quotes.json'];
+              const changed = reviewedFiles.map(function(f) { return f.filename; });
+              const invalidFiles = changed.filter(function(p) { return !allowed.includes(p); });
+              if (changed.length !== 1 || invalidFiles.length > 0) {
+                errors.push('Anime quote PRs must modify only public/anime-quotes.json');
+              }
+
+              try {
+                const quotesPath = 'pr-head/public/anime-quotes.json';
+                if (!fs.existsSync(quotesPath)) {
+                  errors.push('anime-quotes.json file not found in PR');
+                } else {
+                  const content = fs.readFileSync(quotesPath, 'utf8');
+
+                  try {
+                    const quotes = JSON.parse(content);
+
+                    if (!Array.isArray(quotes)) {
+                      errors.push('anime-quotes.json should be an array');
+                    } else {
+                      const invalidQuotes = quotes.filter(function(q) {
+                        return !q.japanese || !q.romaji || !q.english || !q.anime || !q.character;
+                      });
+                      if (invalidQuotes.length > 0) {
+                        errors.push('Each anime quote must have japanese, romaji, english, anime, and character fields');
+                      }
+                    }
+                  } catch (parseErr) {
+                    errors.push(`Invalid JSON: ${parseErr.message}`);
+                  }
+
+                  if (!targetIssue) {
+                    warnings.push('Could not find a matching community issue for this anime quote');
+                  }
+                }
+              } catch (e) {
+                errors.push(`Error reading anime quotes file: ${e.message}`);
               }
             }
 
