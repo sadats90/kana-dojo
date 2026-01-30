@@ -408,9 +408,12 @@ const WelcomeModal = () => {
                       'luminous-tide',
                       'sapphire-bloom',
                       'oboro',
-                      'midnight-fjord'
-                      ,'coral-abyss'
-                    ,'sangosabi'
+                      'midnight-fjord',
+                      'coral-abyss',
+                      'sangosabi',
+                      'hanabi-festival',
+                      'hoshikuzu',
+                      'robot-anime',
                     ];
                     filteredThemes = themeSet.themes.filter(theme =>
                       allowedThemes.includes(theme.id),
@@ -547,17 +550,11 @@ const WelcomeModal = () => {
                   <button
                     key={fontObj.name}
                     className={clsx(
-                      'flex cursor-pointer items-center justify-center overflow-hidden rounded-xl border-0 px-4 py-4 transition-all duration-200 hover:opacity-90 active:scale-95',
+                      'flex cursor-pointer items-center justify-center overflow-hidden rounded-xl border-0 bg-[var(--card-color)] px-4 py-4 transition-all duration-200 hover:opacity-90 active:scale-95',
                       localFont === fontObj.name
-                        ? 'bg-[var(--background-color)]'
-                        : 'bg-[var(--card-color)]',
+                        ? 'border-[var(--main-color)]'
+                        : 'border-[var(--card-color)]',
                     )}
-                    style={{
-                      border:
-                        localFont === fontObj.name
-                          ? '1px solid var(--main-color)'
-                          : '1px solid var(--card-color)',
-                    }}
                     onClick={() => {
                       playClick();
                       setLocalFont(fontObj.name);
