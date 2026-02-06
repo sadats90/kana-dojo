@@ -218,5 +218,16 @@
     "Osaka Castle"
   ],
   "correctIndex": 0
- }
+ },
+ {
+  "question": "Which Japanese writing system is primarily used for foreign words and loanwords?",
+  "difficulty": "medium",
+  "answers": [
+    "Hiragana",
+    "Katakana",
+    "Kanji",
+    "Romaji"
+  ],
+  "correctIndex": 1
+} 
 ]
